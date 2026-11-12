@@ -1,0 +1,75 @@
+package com.example.chargeconnect.charger.dto;
+
+import com.example.chargeconnect.charger.AvailabilityStatus;
+import com.example.chargeconnect.charger.Charger;
+import com.example.chargeconnect.charger.ChargerConnector;
+import com.example.chargeconnect.charger.LocationType;
+import com.example.chargeconnect.charger.PowerType;
+import com.example.chargeconnect.charger.VerificationStatus;
+import com.example.chargeconnect.vehicle.ConnectorType;
+import java.math.BigDecimal;
+import java.time.Instant;
+import java.util.Comparator;
+import java.util.List;
+
+public record ChargerResponse(
+        Long id,
+        Long hostId,
+        String hostName,
+        String title,
+        String description,
+        LocationType locationType,
+        String addressLine,
+        String city,
+        String state,
+        String postalCode,
+        String country,
+        BigDecimal latitude,
+        BigDecimal longitude,
+        PowerType powerType,
+        BigDecimal maxPowerKw,
+        BigDecimal pricePerKwh,
+        AvailabilityStatus availabilityStatus,
+        VerificationStatus verificationStatus,
+        String rejectionReason,
+        Long verifiedByUserId,
+        Instant verifiedAt,
+        List<ConnectorType> connectorTypes,
+        Instant createdAt,
+        Instant updatedAt
+) {
+    public static ChargerResponse from(Charger charger) {
+        List<ConnectorType> connectors = charger.getConnectors().stream()
+                .map(ChargerConnector::getConnectorType)
+                .sorted(Comparator.comparing(Enum::name))
+                .toList();
+
+        return new ChargerResponse(
+                charger.getId(),
+                charger.getHost().getId(),
+                charger.getHost().getFullName(),
+                charger.getTitle(),
+                charger.getDescription(),
+                charger.getLocationType(),
+                charger.getAddressLine(),
+                charger.getCity(),
+                charger.getState(),
+                charger.getPostalCode(),
+                charger.getCountry(),
+                charger.getLatitude(),
+                charger.getLongitude(),
+                charger.getPowerType(),
+                charger.getMaxPowerKw(),
+                charger.getPricePerKwh(),
+                charger.getAvailabilityStatus(),
+                charger.getVerificationStatus(),
+                charger.getRejectionReason(),
+                charger.getVerifiedBy() != null ? charger.getVerifiedBy().getId() : null,
+                charger.getVerifiedAt(),
+                connectors,
+                charger.getCreatedAt(),
+                charger.getUpdatedAt()
+        );
+    }
+}
+
