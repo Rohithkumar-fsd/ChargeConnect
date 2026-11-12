@@ -1,6 +1,6 @@
-package com.example.chargeconnect.vehicle;
+package com.example.chargeconnect.vehicle.model;
 
-import com.example.chargeconnect.user.User;
+import com.example.chargeconnect.user.model.User;
 import jakarta.persistence.*;
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -118,3 +118,4 @@ public class Vehicle {
     public void setMaxAcPowerKw(BigDecimal maxAcPowerKw) { this.maxAcPowerKw = maxAcPowerKw; }
     public void setMaxDcPowerKw(BigDecimal maxDcPowerKw) { this.maxDcPowerKw = maxDcPowerKw; }
 }
+

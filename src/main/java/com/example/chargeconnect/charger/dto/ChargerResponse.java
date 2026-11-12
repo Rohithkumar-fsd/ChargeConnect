@@ -1,12 +1,10 @@
 package com.example.chargeconnect.charger.dto;
 
-import com.example.chargeconnect.charger.AvailabilityStatus;
-import com.example.chargeconnect.charger.Charger;
-import com.example.chargeconnect.charger.ChargerConnector;
-import com.example.chargeconnect.charger.LocationType;
-import com.example.chargeconnect.charger.PowerType;
-import com.example.chargeconnect.charger.VerificationStatus;
-import com.example.chargeconnect.vehicle.ConnectorType;
+import com.example.chargeconnect.charger.model.Charger;
+import com.example.chargeconnect.charger.model.ChargerConnector;
+import com.example.chargeconnect.charger.model.LocationType;
+import com.example.chargeconnect.charger.model.PowerType;
+import com.example.chargeconnect.vehicle.model.ConnectorType;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.Comparator;

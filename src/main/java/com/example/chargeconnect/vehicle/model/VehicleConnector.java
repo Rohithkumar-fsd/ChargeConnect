@@ -1,4 +1,4 @@
-package com.example.chargeconnect.vehicle;
+package com.example.chargeconnect.vehicle.model;
 
 import jakarta.persistence.*;
 
@@ -35,3 +35,4 @@ public class VehicleConnector {
     public Vehicle getVehicle() { return vehicle; }
     public ConnectorType getConnectorType() { return connectorType; }
 }
+

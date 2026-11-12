@@ -1,9 +1,9 @@
 package com.example.chargeconnect.user.controller;
 
 import com.example.chargeconnect.exception.GlobalExceptionHandler;
-import com.example.chargeconnect.user.AccountStatus;
-import com.example.chargeconnect.user.Role;
+import com.example.chargeconnect.user.dto.AccountStatus;
 import com.example.chargeconnect.user.dto.UserProfileResponse;
+import com.example.chargeconnect.user.model.Role;
 import com.example.chargeconnect.user.service.UserService;
 import java.time.Instant;
 import java.util.List;

@@ -1,7 +1,8 @@
-package com.example.chargeconnect.auth;
+package com.example.chargeconnect.auth.service;
 
-import com.example.chargeconnect.user.*;
-import com.example.chargeconnect.user.User;
+import com.example.chargeconnect.user.dto.AccountStatus;
+import com.example.chargeconnect.user.model.User;
+import com.example.chargeconnect.user.repo.UserRepository;
 import org.springframework.security.core.userdetails.*;
 import org.springframework.stereotype.Service;
 
@@ -33,3 +34,4 @@ public class CustomUserDetailsService implements UserDetailsService {
                 .build();
     }
 }
+

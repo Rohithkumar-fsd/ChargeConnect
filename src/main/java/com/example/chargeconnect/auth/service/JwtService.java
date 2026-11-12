@@ -1,4 +1,4 @@
-package com.example.chargeconnect.auth;
+package com.example.chargeconnect.auth.service;
 
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
@@ -54,3 +54,4 @@ public class JwtService {
         }
     }
 }
+

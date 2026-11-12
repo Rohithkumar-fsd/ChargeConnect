@@ -1,4 +1,4 @@
-package com.example.chargeconnect.charger;
+package com.example.chargeconnect.charger.model;
 
 public enum PowerType {
     AC,

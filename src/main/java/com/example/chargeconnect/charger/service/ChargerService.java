@@ -1,18 +1,18 @@
 package com.example.chargeconnect.charger.service;
 
-import com.example.chargeconnect.charger.Charger;
-import com.example.chargeconnect.charger.ChargerConnector;
-import com.example.chargeconnect.charger.ChargerRepository;
-import com.example.chargeconnect.charger.VerificationStatus;
 import com.example.chargeconnect.charger.dto.ChargerPatchRequest;
 import com.example.chargeconnect.charger.dto.ChargerRequest;
 import com.example.chargeconnect.charger.dto.ChargerResponse;
 import com.example.chargeconnect.charger.dto.UpdateAvailabilityRequest;
+import com.example.chargeconnect.charger.dto.VerificationStatus;
 import com.example.chargeconnect.charger.dto.VerifyChargerRequest;
+import com.example.chargeconnect.charger.model.Charger;
+import com.example.chargeconnect.charger.model.ChargerConnector;
+import com.example.chargeconnect.charger.repo.ChargerRepository;
 import com.example.chargeconnect.exception.ResourceNotFoundException;
-import com.example.chargeconnect.user.User;
-import com.example.chargeconnect.user.UserRepository;
-import com.example.chargeconnect.vehicle.ConnectorType;
+import com.example.chargeconnect.user.model.User;
+import com.example.chargeconnect.user.repo.UserRepository;
+import com.example.chargeconnect.vehicle.model.ConnectorType;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.List;

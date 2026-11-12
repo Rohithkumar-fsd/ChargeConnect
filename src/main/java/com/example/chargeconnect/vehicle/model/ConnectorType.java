@@ -1,4 +1,4 @@
-package com.example.chargeconnect.vehicle;
+package com.example.chargeconnect.vehicle.model;
 
 public enum ConnectorType {
     TYPE_1,
@@ -10,3 +10,4 @@ public enum ConnectorType {
     BHARAT_AC_001,
     NACS
 }
+

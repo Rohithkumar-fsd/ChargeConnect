@@ -1,6 +1,6 @@
-package com.example.chargeconnect.charger;
+package com.example.chargeconnect.charger.model;
 
-import com.example.chargeconnect.vehicle.ConnectorType;
+import com.example.chargeconnect.vehicle.model.ConnectorType;
 import jakarta.persistence.*;
 
 @Entity

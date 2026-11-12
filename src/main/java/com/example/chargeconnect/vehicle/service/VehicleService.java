@@ -2,13 +2,13 @@ package com.example.chargeconnect.vehicle.service;
 
 import com.example.chargeconnect.exception.DuplicateResourceException;
 import com.example.chargeconnect.exception.ResourceNotFoundException;
-import com.example.chargeconnect.user.User;
-import com.example.chargeconnect.user.UserRepository;
-import com.example.chargeconnect.vehicle.Vehicle;
-import com.example.chargeconnect.vehicle.VehicleRepository;
+import com.example.chargeconnect.user.model.User;
+import com.example.chargeconnect.user.repo.UserRepository;
 import com.example.chargeconnect.vehicle.dto.VehiclePatchRequest;
 import com.example.chargeconnect.vehicle.dto.VehicleRequest;
 import com.example.chargeconnect.vehicle.dto.VehicleResponse;
+import com.example.chargeconnect.vehicle.model.Vehicle;
+import com.example.chargeconnect.vehicle.repo.VehicleRepository;
 import java.util.List;
 import java.util.Locale;
 import org.springframework.stereotype.Service;

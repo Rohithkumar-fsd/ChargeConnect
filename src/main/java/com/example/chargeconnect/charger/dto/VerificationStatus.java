@@ -1,4 +1,4 @@
-package com.example.chargeconnect.charger;
+package com.example.chargeconnect.charger.dto;
 
 public enum VerificationStatus {
     PENDING,

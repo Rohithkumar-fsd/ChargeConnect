@@ -1,10 +1,11 @@
 package com.example.chargeconnect.auth.service;
 
-import com.example.chargeconnect.auth.JwtService;
 import com.example.chargeconnect.auth.dto.AuthResponse;
 import com.example.chargeconnect.auth.dto.LoginRequest;
 import com.example.chargeconnect.auth.dto.RegisterRequest;
-import com.example.chargeconnect.user.*;
+import com.example.chargeconnect.user.model.Role;
+import com.example.chargeconnect.user.model.User;
+import com.example.chargeconnect.user.repo.UserRepository;
 import org.springframework.security.authentication.*;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;

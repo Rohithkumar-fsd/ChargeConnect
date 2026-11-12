@@ -1,6 +1,6 @@
 package com.example.chargeconnect.config;
 
-import com.example.chargeconnect.auth.JwtAuthFilter;
+import com.example.chargeconnect.auth.security.JwtAuthFilter;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.context.annotation.*;
 import org.springframework.security.authentication.*;

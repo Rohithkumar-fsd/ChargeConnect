@@ -1,5 +1,6 @@
-package com.example.chargeconnect.vehicle;
+package com.example.chargeconnect.vehicle.repo;
 
+import com.example.chargeconnect.vehicle.model.Vehicle;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.EntityGraph;
@@ -17,3 +18,4 @@ public interface VehicleRepository extends JpaRepository<Vehicle, Long> {
 
     boolean existsByRegistrationNumberAndIdNot(String registrationNumber, Long id);
 }
+

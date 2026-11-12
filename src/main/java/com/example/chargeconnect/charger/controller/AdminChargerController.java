@@ -1,7 +1,7 @@
 package com.example.chargeconnect.charger.controller;
 
-import com.example.chargeconnect.charger.VerificationStatus;
 import com.example.chargeconnect.charger.dto.ChargerResponse;
+import com.example.chargeconnect.charger.dto.VerificationStatus;
 import com.example.chargeconnect.charger.dto.VerifyChargerRequest;
 import com.example.chargeconnect.charger.service.ChargerService;
 import jakarta.validation.Valid;

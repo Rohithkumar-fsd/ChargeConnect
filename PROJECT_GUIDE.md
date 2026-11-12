@@ -19,26 +19,29 @@ ChargeConnect is a **Peer-to-Peer EV Charging Marketplace** built as a Spring Bo
 
 - **`auth`**
   - `controller.AuthController` — `/api/auth/register`, `/api/auth/login`, `/api/auth/me`
-  - `service.AuthService` — registration, password hashing, login authentication, JWT issuance
+  - `service.AuthService`, `service.JwtService`, `service.CustomUserDetailsService`
+  - `security.JwtAuthFilter`
   - `dto` — `RegisterRequest`, `LoginRequest`, `AuthResponse`
-  - `JwtService`, `JwtAuthFilter`, `CustomUserDetailsService`
 - **`user`**
-  - `User`, `Role` (`DRIVER`, `HOST`, `ADMIN`), `AccountStatus` (`ACTIVE`, `SUSPENDED`), `UserRepository`
+  - `model` — `User`, `Role` (`DRIVER`, `HOST`, `ADMIN`)
+  - `repo.UserRepository`
   - `controller.UserController` — `/api/users/me` profile, password change, self-assignable role addition
   - `controller.AdminUserController` — `/api/admin/users` listing, lookup, account suspension/activation
   - `service.UserService`
-  - `dto` — `UserProfileResponse`, `UpdateProfileRequest`, `ChangePasswordRequest`, `AddRoleRequest`, `UpdateAccountStatusRequest`
+  - `dto` — `AccountStatus` (`ACTIVE`, `SUSPENDED`), `UserProfileResponse`, `UpdateProfileRequest`, `ChangePasswordRequest`, `AddRoleRequest`, `UpdateAccountStatusRequest`
 - **`vehicle`**
-  - `Vehicle`, `VehicleConnector`, `ConnectorType`, `VehicleRepository`
+  - `model` — `Vehicle`, `VehicleConnector`, `ConnectorType`
+  - `repo.VehicleRepository`
   - `controller.VehicleController` — `/api/driver/vehicles` CRUD
   - `service.VehicleService`
   - `dto` — `VehicleRequest`, `VehiclePatchRequest`, `VehicleResponse`
 - **`charger`**
-  - `Charger`, `ChargerConnector`, `LocationType`, `PowerType`, `AvailabilityStatus`, `VerificationStatus`, `ChargerRepository`
+  - `model` — `Charger`, `ChargerConnector`, `LocationType`, `PowerType`
+  - `repo.ChargerRepository`
   - `controller.HostChargerController` — `/api/host/chargers` CRUD & availability toggle
   - `controller.AdminChargerController` — `/api/admin/chargers` review & approve/reject verification
   - `service.ChargerService`
-  - `dto` — `ChargerRequest`, `ChargerPatchRequest`, `UpdateAvailabilityRequest`, `VerifyChargerRequest`, `ChargerResponse`
+  - `dto` — `AvailabilityStatus`, `VerificationStatus`, `ChargerRequest`, `ChargerPatchRequest`, `UpdateAvailabilityRequest`, `VerifyChargerRequest`, `ChargerResponse`
 - **`config`**
   - `SecurityConfig` — stateless filter chain, RBAC route rules, JSON 401/403 handlers
   - `HealthController` — `/api/health` database connectivity check

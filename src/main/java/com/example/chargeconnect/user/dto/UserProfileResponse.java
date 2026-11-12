@@ -1,8 +1,7 @@
 package com.example.chargeconnect.user.dto;
 
-import com.example.chargeconnect.user.AccountStatus;
-import com.example.chargeconnect.user.Role;
-import com.example.chargeconnect.user.User;
+import com.example.chargeconnect.user.model.Role;
+import com.example.chargeconnect.user.model.User;
 import java.time.Instant;
 import java.util.Comparator;
 import java.util.List;

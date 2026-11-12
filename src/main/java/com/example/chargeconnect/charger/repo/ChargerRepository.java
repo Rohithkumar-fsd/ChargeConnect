@@ -1,5 +1,7 @@
-package com.example.chargeconnect.charger;
+package com.example.chargeconnect.charger.repo;
 
+import com.example.chargeconnect.charger.dto.VerificationStatus;
+import com.example.chargeconnect.charger.model.Charger;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.EntityGraph;

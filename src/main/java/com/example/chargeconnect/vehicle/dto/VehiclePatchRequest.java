@@ -1,6 +1,6 @@
 package com.example.chargeconnect.vehicle.dto;
 
-import com.example.chargeconnect.vehicle.ConnectorType;
+import com.example.chargeconnect.vehicle.model.ConnectorType;
 import jakarta.validation.constraints.*;
 import java.math.BigDecimal;
 import java.util.Set;

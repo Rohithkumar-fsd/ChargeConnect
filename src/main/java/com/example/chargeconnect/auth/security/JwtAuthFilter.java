@@ -1,5 +1,7 @@
-package com.example.chargeconnect.auth;
+package com.example.chargeconnect.auth.security;
 
+import com.example.chargeconnect.auth.service.CustomUserDetailsService;
+import com.example.chargeconnect.auth.service.JwtService;
 import jakarta.servlet.*;
 import jakarta.servlet.http.*;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -70,3 +72,4 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         chain.doFilter(request, response);
     }
 }
+

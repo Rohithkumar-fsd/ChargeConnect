@@ -1,13 +1,13 @@
 package com.example.chargeconnect.charger.controller;
 
-import com.example.chargeconnect.charger.AvailabilityStatus;
-import com.example.chargeconnect.charger.LocationType;
-import com.example.chargeconnect.charger.PowerType;
-import com.example.chargeconnect.charger.VerificationStatus;
+import com.example.chargeconnect.charger.dto.AvailabilityStatus;
 import com.example.chargeconnect.charger.dto.ChargerResponse;
+import com.example.chargeconnect.charger.dto.VerificationStatus;
+import com.example.chargeconnect.charger.model.LocationType;
+import com.example.chargeconnect.charger.model.PowerType;
 import com.example.chargeconnect.charger.service.ChargerService;
 import com.example.chargeconnect.exception.GlobalExceptionHandler;
-import com.example.chargeconnect.vehicle.ConnectorType;
+import com.example.chargeconnect.vehicle.model.ConnectorType;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.List;

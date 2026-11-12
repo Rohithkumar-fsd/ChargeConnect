@@ -1,8 +1,8 @@
 package com.example.chargeconnect.vehicle.dto;
 
-import com.example.chargeconnect.vehicle.ConnectorType;
-import com.example.chargeconnect.vehicle.Vehicle;
-import com.example.chargeconnect.vehicle.VehicleConnector;
+import com.example.chargeconnect.vehicle.model.ConnectorType;
+import com.example.chargeconnect.vehicle.model.Vehicle;
+import com.example.chargeconnect.vehicle.model.VehicleConnector;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.Comparator;

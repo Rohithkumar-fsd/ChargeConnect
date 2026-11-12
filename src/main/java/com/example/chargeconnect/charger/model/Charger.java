@@ -1,7 +1,9 @@
-package com.example.chargeconnect.charger;
+package com.example.chargeconnect.charger.model;
 
-import com.example.chargeconnect.user.User;
-import com.example.chargeconnect.vehicle.ConnectorType;
+import com.example.chargeconnect.charger.dto.AvailabilityStatus;
+import com.example.chargeconnect.charger.dto.VerificationStatus;
+import com.example.chargeconnect.user.model.User;
+import com.example.chargeconnect.vehicle.model.ConnectorType;
 import jakarta.persistence.*;
 import java.math.BigDecimal;
 import java.time.Instant;

@@ -1,4 +1,4 @@
-package com.example.chargeconnect.user;
+package com.example.chargeconnect.user.dto;
 
 public enum AccountStatus {
     ACTIVE,

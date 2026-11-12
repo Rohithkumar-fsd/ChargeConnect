@@ -1,5 +1,6 @@
-package com.example.chargeconnect.user;
+package com.example.chargeconnect.user.model;
 
+import com.example.chargeconnect.user.dto.AccountStatus;
 import jakarta.persistence.*;
 import java.time.Instant;
 import java.util.HashSet;
@@ -84,3 +85,4 @@ public class User {
     public void setAccountStatus(AccountStatus accountStatus) { this.accountStatus = accountStatus; }
     public void addRole(Role role) { this.roles.add(role); }
 }
+
