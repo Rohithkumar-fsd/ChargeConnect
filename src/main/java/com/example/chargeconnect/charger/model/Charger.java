@@ -7,6 +7,7 @@ import com.example.chargeconnect.vehicle.model.ConnectorType;
 import jakarta.persistence.*;
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.time.LocalTime;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -63,6 +64,12 @@ public class Charger {
 
     @Column(name = "price_per_kwh", nullable = false, precision = 8, scale = 2)
     private BigDecimal pricePerKwh;
+
+    @Column(name = "open_time", nullable = false)
+    private LocalTime openTime = LocalTime.of(0, 0, 0);
+
+    @Column(name = "close_time", nullable = false)
+    private LocalTime closeTime = LocalTime.of(23, 59, 59);
 
     @Enumerated(EnumType.STRING)
     @Column(name = "availability_status", nullable = false, length = 20)
@@ -193,6 +200,8 @@ public class Charger {
     public PowerType getPowerType() { return powerType; }
     public BigDecimal getMaxPowerKw() { return maxPowerKw; }
     public BigDecimal getPricePerKwh() { return pricePerKwh; }
+    public LocalTime getOpenTime() { return openTime; }
+    public LocalTime getCloseTime() { return closeTime; }
     public AvailabilityStatus getAvailabilityStatus() { return availabilityStatus; }
     public VerificationStatus getVerificationStatus() { return verificationStatus; }
     public String getRejectionReason() { return rejectionReason; }
@@ -215,6 +224,12 @@ public class Charger {
     public void setPowerType(PowerType powerType) { this.powerType = powerType; }
     public void setMaxPowerKw(BigDecimal maxPowerKw) { this.maxPowerKw = maxPowerKw; }
     public void setPricePerKwh(BigDecimal pricePerKwh) { this.pricePerKwh = pricePerKwh; }
+    public void setOpenTime(LocalTime openTime) {
+        this.openTime = openTime != null ? openTime : LocalTime.of(0, 0, 0);
+    }
+    public void setCloseTime(LocalTime closeTime) {
+        this.closeTime = closeTime != null ? closeTime : LocalTime.of(23, 59, 59);
+    }
     public void setAvailabilityStatus(AvailabilityStatus availabilityStatus) {
         this.availabilityStatus = availabilityStatus;
     }

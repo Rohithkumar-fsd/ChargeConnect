@@ -42,6 +42,18 @@ ChargeConnect is a **Peer-to-Peer EV Charging Marketplace** built as a Spring Bo
   - `controller.AdminChargerController` — `/api/admin/chargers` review & approve/reject verification
   - `service.ChargerService`
   - `dto` — `AvailabilityStatus`, `VerificationStatus`, `ChargerRequest`, `ChargerPatchRequest`, `UpdateAvailabilityRequest`, `VerifyChargerRequest`, `ChargerResponse`
+- **`discovery`**
+  - `repo` — `DiscoveryRepository`, `DiscoveredChargerProjection`
+  - `controller.DriverDiscoveryController` — `/api/driver/discovery/nearby`
+  - `service.DiscoveryService`
+  - `dto` — `DiscoveredChargerResponse`, `VehicleMatchedChargerResponse`
+- **`booking`**
+  - `model` — `Booking`, `BookingStatus` (`PENDING`, `CONFIRMED`, `CANCELLED`, `COMPLETED`, `EXPIRED`, `BLOCKED_BY_HOST`)
+  - `repo` — `BookingRepository`
+  - `controller.DriverBookingController` — `/api/driver/bookings/**`, `/api/driver/bookings/available-slots`
+  - `controller.HostBookingController` — `/api/host/chargers/{chargerId}/bookings/**`, `/api/host/chargers/{chargerId}/block-slots`
+  - `service.BookingService`, `service.BookingLockService`, `service.RedisBookingLockService`
+  - `dto` — `CreateBookingRequest`, `CancelBookingRequest`, `HostBlockSlotRequest`, `BookingResponse`, `AvailableSlotsResponse`, `TimeSlot`
 - **`config`**
   - `SecurityConfig` — stateless filter chain, RBAC route rules, JSON 401/403 handlers
   - `HealthController` — `/api/health` database connectivity check
@@ -70,6 +82,11 @@ Migrations live in `src/main/resources/db/migration`:
    - `charger_connectors` (`id`, `charger_id` FK -> `chargers.id` ON DELETE CASCADE, `connector_type`, UNIQUE `(charger_id, connector_type)`)
    - Indexes: `idx_chargers_host_id`, `idx_chargers_verification_status`, and `GIST` spatial index `idx_chargers_location` on `chargers(location)`
    - Trigger `trg_sync_charger_location` (`sync_charger_location()`) automatically keeps `location` synced from `(longitude, latitude)` in SRID `4326` on every `INSERT` or coordinate `UPDATE`.
+6. **`V6__create_booking_tables.sql`**
+   - Adds operating hours to chargers: `open_time TIME NOT NULL DEFAULT '00:00:00'`, `close_time TIME NOT NULL DEFAULT '23:59:59'`
+   - `bookings` (`id`, `booking_reference` UUID UNIQUE, `driver_id` FK -> `users.id` ON DELETE CASCADE, `charger_id` FK -> `chargers.id` ON DELETE CASCADE, `vehicle_id` FK -> `vehicles.id` ON DELETE SET NULL, `start_time`, `end_time`, `total_hours`, `price_per_kwh`, `estimated_kwh`, `total_price`, `status`, `cancellation_reason`, timestamps)
+   - Constraints: `end_time > start_time`, `chk_booking_status` (`PENDING`, `CONFIRMED`, `CANCELLED`, `COMPLETED`, `EXPIRED`, `BLOCKED_BY_HOST`)
+   - Indexes: `idx_bookings_driver_id`, `idx_bookings_charger_id`, `idx_bookings_charger_status_dates`, `idx_bookings_reference`
 
 ---
 
@@ -128,6 +145,29 @@ Supported Charger Enums:
 - `AvailabilityStatus`: `AVAILABLE`, `UNAVAILABLE`, `MAINTENANCE`
 - `VerificationStatus`: `PENDING`, `APPROVED`, `REJECTED`
 
+### Location & Discovery (MVP)
+When the driver clicks "Find Nearby" on the map, the API finds approved and available charging stations near their current GPS coordinates that match their EV's connectors and power constraints.
+
+| Method | Path | Auth | Description |
+| :--- | :--- | :--- | :--- |
+| `GET` | `/api/driver/discovery/nearby` | `ROLE_DRIVER` | Find nearby compatible chargers by query params (`vehicleId`, `latitude`, `longitude`, optional `radiusMeters`, `maxPricePerKwh`) |
+
+The response matches the vehicle's connectors, calculates `effectivePowerKw` (the maximum rate the car can safely draw at that charger), and sorts chargers nearest-first (`distanceMeters`).
+
+### Booking Management
+Enforces 30-minute time-slot boundaries, host operating hours, connector compatibility, and a **Two-Layer Locking Strategy** (Layer 1: Redis distributed lock with 10-min TTL during checkout; Layer 2: PostgreSQL transactional overlap constraint) to physically eliminate double-booking race conditions.
+
+| Method | Path | Auth | Description |
+| :--- | :--- | :--- | :--- |
+| `POST` | `/api/driver/bookings` | `ROLE_DRIVER` | Creates a new booking (`PENDING` with 10-min Redis lock) (`201`) |
+| `POST` | `/api/driver/bookings/{bookingId}/confirm` | `ROLE_DRIVER` | Confirms payment / finalizes slot (`CONFIRMED`, releases checkout lock) |
+| `POST` | `/api/driver/bookings/{bookingId}/cancel` | `ROLE_DRIVER` | Cancels an upcoming booking (`CANCELLED`) |
+| `GET` | `/api/driver/bookings` | `ROLE_DRIVER` | Lists all bookings for the logged-in driver (`startTime DESC`) |
+| `GET` | `/api/driver/bookings/{bookingId}` | `ROLE_DRIVER` | Fetches details of a specific driver booking |
+| `GET` | `/api/driver/bookings/available-slots` | `ROLE_DRIVER` | Returns 30-minute calendar slots (`AVAILABLE` / `BUSY`) for a charger & date |
+| `GET` | `/api/host/chargers/{chargerId}/bookings` | `ROLE_HOST` | Host views calendar of all bookings on their charger |
+| `POST` | `/api/host/chargers/{chargerId}/block-slots` | `ROLE_HOST` | Host blocks a slot for personal EV charging (`BLOCKED_BY_HOST`) (`201`) |
+
 ---
 
 ## 5. How to Run & Test the Project Locally
@@ -157,12 +197,12 @@ docker compose ps
 ```powershell
 .\mvnw.cmd spring-boot:run
 ```
-Flyway automatically applies `V1`–`V5` on startup, and the API listens on `http://localhost:8083`.
+Flyway automatically applies `V1`–`V6` on startup, and the API listens on `http://localhost:8083`.
 
 ### 4. Run Automated Tests
 Unit and controller slice tests (do not require Docker):
 ```powershell
-.\mvnw.cmd test "-Dtest=ChargerServiceTest,HostChargerControllerTest,AdminChargerControllerTest,UserServiceTest,UserControllerTest,AdminUserControllerTest,VehicleServiceTest,VehicleControllerTest"
+.\mvnw.cmd test "-Dtest=BookingServiceTest,DriverBookingControllerTest,HostBookingControllerTest,DiscoveryServiceTest,DriverDiscoveryControllerTest,ChargerServiceTest,HostChargerControllerTest,AdminChargerControllerTest,UserServiceTest,UserControllerTest,AdminUserControllerTest,VehicleServiceTest,VehicleControllerTest"
 ```
 Full test suite (requires Docker Postgres running on port `5433` for `ChargeconnectApplicationTests`):
 ```powershell
@@ -234,7 +274,5 @@ Key details:
 
 ## 7. Next Modules (Planned)
 
-- **Location & Discovery** (PostGIS `ST_DWithin` / `ST_Distance` nearby & vehicle-compatible charger search)
-- **Booking Management** (Redis temporary locks + PostgreSQL constraints for double-booking prevention)
-- **Payment Management** (Razorpay integration, verification, refunds, host payouts)
-- **Charging Sessions** (QR check-in, host confirmation, start/end tracking, energy consumption)
+- **Payment Management** (Razorpay integration, checkout order creation, signature verification, refunds, host payouts)
+- **Charging Sessions** (QR check-in, host confirmation, real-time start/end tracking, energy consumption)

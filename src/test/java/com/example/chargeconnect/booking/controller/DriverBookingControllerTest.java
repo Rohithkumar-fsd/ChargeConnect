@@ -1,0 +1,109 @@
+package com.example.chargeconnect.booking.controller;
+
+import com.example.chargeconnect.booking.dto.BookingResponse;
+import com.example.chargeconnect.booking.dto.CreateBookingRequest;
+import com.example.chargeconnect.booking.model.BookingStatus;
+import com.example.chargeconnect.booking.service.BookingService;
+import com.example.chargeconnect.exception.GlobalExceptionHandler;
+import java.math.BigDecimal;
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.ZoneOffset;
+import java.util.List;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.http.MediaType;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.validation.beanvalidation.LocalValidatorFactoryBean;
+
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+@ExtendWith(MockitoExtension.class)
+class DriverBookingControllerTest {
+
+    @Mock
+    private BookingService bookingService;
+
+    private MockMvc mockMvc;
+    private Authentication driverAuth;
+
+    @BeforeEach
+    void setUp() {
+        LocalValidatorFactoryBean validator = new LocalValidatorFactoryBean();
+        validator.afterPropertiesSet();
+
+        mockMvc = MockMvcBuilders.standaloneSetup(new DriverBookingController(bookingService))
+                .setControllerAdvice(new GlobalExceptionHandler())
+                .setValidator(validator)
+                .build();
+
+        driverAuth = new UsernamePasswordAuthenticationToken("driver@test.com", null);
+    }
+
+    @Test
+    void createBookingReturns201() throws Exception {
+        Instant start = LocalDate.now().plusDays(1).atTime(10, 0).toInstant(ZoneOffset.UTC);
+        Instant end = LocalDate.now().plusDays(1).atTime(12, 0).toInstant(ZoneOffset.UTC);
+
+        BookingResponse mockResponse = new BookingResponse(
+                1L, "ref-uuid", 5L, "Driver Dave", 10L, "Station A", 20L, "Tata Nexon",
+                start, end, new BigDecimal("2.00"), new BigDecimal("15.00"),
+                new BigDecimal("60.00"), new BigDecimal("900.00"),
+                BookingStatus.PENDING, null, Instant.now(), Instant.now()
+        );
+
+        when(bookingService.createBooking(eq("driver@test.com"), any(CreateBookingRequest.class)))
+                .thenReturn(mockResponse);
+
+        String body = String.format("""
+                {
+                  "chargerId": 10,
+                  "vehicleId": 20,
+                  "startTime": "%s",
+                  "endTime": "%s"
+                }
+                """, start, end);
+
+        mockMvc.perform(post("/api/driver/bookings")
+                        .principal(driverAuth)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(body))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.id").value(1))
+                .andExpect(jsonPath("$.status").value("PENDING"))
+                .andExpect(jsonPath("$.totalHours").value(2.0))
+                .andExpect(jsonPath("$.totalPrice").value(900.0));
+    }
+
+    @Test
+    void getMyBookingsReturnsList() throws Exception {
+        Instant start = LocalDate.now().plusDays(1).atTime(10, 0).toInstant(ZoneOffset.UTC);
+        Instant end = LocalDate.now().plusDays(1).atTime(11, 0).toInstant(ZoneOffset.UTC);
+
+        BookingResponse mockResponse = new BookingResponse(
+                1L, "ref-uuid", 5L, "Driver Dave", 10L, "Station A", 20L, "Tata Nexon",
+                start, end, new BigDecimal("1.00"), new BigDecimal("15.00"),
+                new BigDecimal("30.00"), new BigDecimal("450.00"),
+                BookingStatus.CONFIRMED, null, Instant.now(), Instant.now()
+        );
+
+        when(bookingService.getDriverBookings("driver@test.com")).thenReturn(List.of(mockResponse));
+
+        mockMvc.perform(get("/api/driver/bookings").principal(driverAuth))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].id").value(1))
+                .andExpect(jsonPath("$[0].status").value("CONFIRMED"));
+    }
+}

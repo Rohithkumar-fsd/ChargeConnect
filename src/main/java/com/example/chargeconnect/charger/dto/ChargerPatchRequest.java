@@ -5,6 +5,7 @@ import com.example.chargeconnect.charger.model.PowerType;
 import com.example.chargeconnect.vehicle.model.ConnectorType;
 import jakarta.validation.constraints.*;
 import java.math.BigDecimal;
+import java.time.LocalTime;
 import java.util.Set;
 
 public record ChargerPatchRequest(
@@ -51,6 +52,30 @@ public record ChargerPatchRequest(
         @Digits(integer = 6, fraction = 2, message = "Price per kWh supports up to 6 integer digits and 2 decimal places")
         BigDecimal pricePerKwh,
 
+        LocalTime openTime,
+
+        LocalTime closeTime,
+
         Set<@NotNull(message = "Connector type cannot be null") ConnectorType> connectorTypes
-) {}
+) {
+    public ChargerPatchRequest(
+            String title,
+            String description,
+            LocationType locationType,
+            String addressLine,
+            String city,
+            String state,
+            String postalCode,
+            String country,
+            BigDecimal latitude,
+            BigDecimal longitude,
+            PowerType powerType,
+            BigDecimal maxPowerKw,
+            BigDecimal pricePerKwh,
+            Set<ConnectorType> connectorTypes
+    ) {
+        this(title, description, locationType, addressLine, city, state, postalCode, country,
+                latitude, longitude, powerType, maxPowerKw, pricePerKwh, null, null, connectorTypes);
+    }
+}
 

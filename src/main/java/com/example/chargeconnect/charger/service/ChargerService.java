@@ -54,6 +54,12 @@ public class ChargerService {
                 request.pricePerKwh()
         );
         charger.replaceConnectors(request.connectorTypes());
+        if (request.openTime() != null) {
+            charger.setOpenTime(request.openTime());
+        }
+        if (request.closeTime() != null) {
+            charger.setCloseTime(request.closeTime());
+        }
 
         Charger saved = chargerRepository.saveAndFlush(charger);
         return ChargerResponse.from(saved);
@@ -145,6 +151,12 @@ public class ChargerService {
         }
         if (request.pricePerKwh() != null) {
             charger.setPricePerKwh(request.pricePerKwh());
+        }
+        if (request.openTime() != null) {
+            charger.setOpenTime(request.openTime());
+        }
+        if (request.closeTime() != null) {
+            charger.setCloseTime(request.closeTime());
         }
         if (request.connectorTypes() != null) {
             if (request.connectorTypes().isEmpty()) {
