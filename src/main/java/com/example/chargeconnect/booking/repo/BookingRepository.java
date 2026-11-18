@@ -52,5 +52,9 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
     Optional<Booking> findByIdAndChargerHostId(Long id, Long hostId);
 
     Optional<Booking> findByBookingReference(String bookingReference);
+
+    Optional<Booking> findFirstByDriverIdAndChargerIdAndStatusOrderByStartTimeAsc(
+            Long driverId, Long chargerId, BookingStatus status
+    );
 }
 

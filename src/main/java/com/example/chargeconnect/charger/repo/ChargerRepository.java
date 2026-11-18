@@ -23,5 +23,8 @@ public interface ChargerRepository extends JpaRepository<Charger, Long> {
 
     @EntityGraph(attributePaths = {"connectors", "host", "verifiedBy"})
     Optional<Charger> findWithDetailsById(Long id);
+
+    @EntityGraph(attributePaths = {"connectors", "host", "verifiedBy"})
+    Optional<Charger> findByQrCode(String qrCode);
 }
 

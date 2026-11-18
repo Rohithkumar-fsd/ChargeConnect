@@ -71,6 +71,15 @@ public class Charger {
     @Column(name = "close_time", nullable = false)
     private LocalTime closeTime = LocalTime.of(23, 59, 59);
 
+    @Column(name = "qr_code", unique = true, length = 64)
+    private String qrCode;
+
+    @Column(name = "average_rating", nullable = false, precision = 3, scale = 2)
+    private BigDecimal averageRating = BigDecimal.ZERO;
+
+    @Column(name = "total_reviews", nullable = false)
+    private Integer totalReviews = 0;
+
     @Enumerated(EnumType.STRING)
     @Column(name = "availability_status", nullable = false, length = 20)
     private AvailabilityStatus availabilityStatus = AvailabilityStatus.AVAILABLE;
@@ -139,6 +148,9 @@ public class Charger {
             this.createdAt = now;
         }
         this.updatedAt = now;
+        if (this.qrCode == null) {
+            this.qrCode = "CHG-QR-" + java.util.UUID.randomUUID().toString().replace("-", "").substring(0, 10).toUpperCase();
+        }
     }
 
     @PreUpdate
@@ -202,6 +214,9 @@ public class Charger {
     public BigDecimal getPricePerKwh() { return pricePerKwh; }
     public LocalTime getOpenTime() { return openTime; }
     public LocalTime getCloseTime() { return closeTime; }
+    public String getQrCode() { return qrCode; }
+    public BigDecimal getAverageRating() { return averageRating; }
+    public Integer getTotalReviews() { return totalReviews; }
     public AvailabilityStatus getAvailabilityStatus() { return availabilityStatus; }
     public VerificationStatus getVerificationStatus() { return verificationStatus; }
     public String getRejectionReason() { return rejectionReason; }
@@ -232,6 +247,15 @@ public class Charger {
     }
     public void setAvailabilityStatus(AvailabilityStatus availabilityStatus) {
         this.availabilityStatus = availabilityStatus;
+    }
+    public void setQrCode(String qrCode) {
+        this.qrCode = qrCode;
+    }
+    public void setAverageRating(BigDecimal averageRating) {
+        this.averageRating = averageRating != null ? averageRating : BigDecimal.ZERO;
+    }
+    public void setTotalReviews(Integer totalReviews) {
+        this.totalReviews = totalReviews != null ? totalReviews : 0;
     }
 }
 

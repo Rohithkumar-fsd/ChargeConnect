@@ -54,6 +54,26 @@ ChargeConnect is a **Peer-to-Peer EV Charging Marketplace** built as a Spring Bo
   - `controller.HostBookingController` — `/api/host/chargers/{chargerId}/bookings/**`, `/api/host/chargers/{chargerId}/block-slots`
   - `service.BookingService`, `service.BookingLockService`, `service.RedisBookingLockService`
   - `dto` — `CreateBookingRequest`, `CancelBookingRequest`, `HostBlockSlotRequest`, `BookingResponse`, `AvailableSlotsResponse`, `TimeSlot`
+- **`payment`**
+  - `model` — `Payment`, `PaymentStatus` (`PENDING`, `SUCCESS`, `FAILED`, `REFUNDED`), `Refund`
+  - `repo` — `PaymentRepository`, `RefundRepository`
+  - `controller.DriverPaymentController` — `/api/driver/payments/**`
+  - `service.PaymentService`, `service.PaymentGateway`, `service.RazorpayPaymentGateway`
+  - `dto` — `CreatePaymentOrderRequest`, `PaymentOrderResponse`, `VerifyPaymentRequest`, `PaymentResponse`, `GatewayOrder`, `GatewayRefund`
+- **`session`**
+  - `model` — `ChargingSession`, `SessionStatus` (`ACTIVE`, `COMPLETED`, `STOPPED_EARLY`, `EMERGENCY_STOPPED`)
+  - `repo` — `ChargingSessionRepository`
+  - `controller.DriverSessionController` — `/api/driver/sessions/**`
+  - `controller.HostSessionController` — `/api/host/chargers/{chargerId}/sessions/**`
+  - `service.ChargingSessionService`
+  - `dto` — `StartSessionRequest`, `StopSessionRequest`, `SessionResponse`, `LiveTelemetryResponse`
+- **`review`**
+  - `model` — `Review`
+  - `repo` — `ReviewRepository`
+  - `controller.DriverReviewController` — `/api/driver/reviews/**`
+  - `controller.PublicReviewController` — `/api/chargers/{chargerId}/reviews`
+  - `service.ReviewService`
+  - `dto` — `CreateReviewRequest`, `ReviewResponse`
 - **`config`**
   - `SecurityConfig` — stateless filter chain, RBAC route rules, JSON 401/403 handlers
   - `HealthController` — `/api/health` database connectivity check
@@ -87,6 +107,21 @@ Migrations live in `src/main/resources/db/migration`:
    - `bookings` (`id`, `booking_reference` UUID UNIQUE, `driver_id` FK -> `users.id` ON DELETE CASCADE, `charger_id` FK -> `chargers.id` ON DELETE CASCADE, `vehicle_id` FK -> `vehicles.id` ON DELETE SET NULL, `start_time`, `end_time`, `total_hours`, `price_per_kwh`, `estimated_kwh`, `total_price`, `status`, `cancellation_reason`, timestamps)
    - Constraints: `end_time > start_time`, `chk_booking_status` (`PENDING`, `CONFIRMED`, `CANCELLED`, `COMPLETED`, `EXPIRED`, `BLOCKED_BY_HOST`)
    - Indexes: `idx_bookings_driver_id`, `idx_bookings_charger_id`, `idx_bookings_charger_status_dates`, `idx_bookings_reference`
+7. **`V7__create_payment_tables.sql`**
+   - `payments` (`id`, `booking_id` FK -> `bookings.id` UNIQUE, `driver_id` FK -> `users.id` ON DELETE CASCADE, `razorpay_order_id` UNIQUE, `razorpay_payment_id` UNIQUE, `razorpay_signature`, `amount`, `currency` DEFAULT `'INR'`, `status`, `failure_reason`, timestamps)
+   - `refunds` (`id`, `payment_id` FK -> `payments.id` ON DELETE CASCADE, `razorpay_refund_id` UNIQUE, `amount`, `status` DEFAULT `'PROCESSED'`, `reason`, `created_at`)
+   - Constraints: `chk_payment_status` (`PENDING`, `SUCCESS`, `FAILED`, `REFUNDED`)
+   - Indexes: `idx_payments_booking_id`, `idx_payments_driver_id`, `idx_payments_razorpay_order_id`, `idx_refunds_payment_id`
+8. **`V8__create_charging_session_tables.sql`**
+   - Adds `qr_code VARCHAR(64) UNIQUE NOT NULL` to `chargers` (backfilled with `'CHG-QR-' || id`).
+   - `charging_sessions` (`id`, `session_reference` VARCHAR(64) UNIQUE, `booking_id` FK -> `bookings.id` UNIQUE, `driver_id` FK -> `users.id` ON DELETE CASCADE, `charger_id` FK -> `chargers.id` ON DELETE CASCADE, `vehicle_id` FK -> `vehicles.id` ON DELETE SET NULL, `status`, `start_time`, `end_time`, `initial_meter_kwh`, `final_meter_kwh`, `energy_delivered_kwh`, `price_per_kwh`, `total_cost`, `stop_reason`, timestamps)
+   - Constraints: `chk_session_status` (`ACTIVE`, `COMPLETED`, `STOPPED_EARLY`, `EMERGENCY_STOPPED`), `chk_meter_readings`, `chk_energy_positive`
+   - Indexes: `idx_sessions_booking_id`, `idx_sessions_driver_id`, `idx_sessions_charger_id`, `idx_sessions_status`
+9. **`V9__create_review_tables.sql`**
+   - Adds `average_rating DECIMAL(3,2) NOT NULL DEFAULT 0.00` and `total_reviews INTEGER NOT NULL DEFAULT 0` to `chargers`.
+   - `reviews` (`id`, `session_id` FK -> `charging_sessions.id` UNIQUE, `booking_id` FK -> `bookings.id` UNIQUE, `charger_id` FK -> `chargers.id` ON DELETE CASCADE, `driver_id` FK -> `users.id` ON DELETE CASCADE, `rating` 1–5, `comment`, timestamps)
+   - Constraints: `chk_review_rating` (1–5)
+   - Indexes: `idx_reviews_charger_id`, `idx_reviews_driver_id`, `idx_reviews_created_at`
 
 ---
 
@@ -168,6 +203,35 @@ Enforces 30-minute time-slot boundaries, host operating hours, connector compati
 | `GET` | `/api/host/chargers/{chargerId}/bookings` | `ROLE_HOST` | Host views calendar of all bookings on their charger |
 | `POST` | `/api/host/chargers/{chargerId}/block-slots` | `ROLE_HOST` | Host blocks a slot for personal EV charging (`BLOCKED_BY_HOST`) (`201`) |
 
+### Payment Management
+| Method | Path | Auth | Description |
+| :--- | :--- | :--- | :--- |
+| `POST` | `/api/driver/payments/create-order` | `ROLE_DRIVER` | Creates Razorpay order for a pending booking and stores payment as `PENDING` (`201`) |
+| `POST` | `/api/driver/payments/verify` | `ROLE_DRIVER` | Verifies HMAC-SHA256 signature, transitions payment to `SUCCESS`, booking to `CONFIRMED`, and frees Redis hold lock |
+| `GET` | `/api/driver/payments/booking/{bookingId}` | `ROLE_DRIVER` | Fetches payment receipt and status for a specific booking |
+| `GET` | `/api/driver/payments` | `ROLE_DRIVER` | Lists all payment receipts for the logged-in driver (`createdAt DESC`) |
+| `POST` | `/api/driver/payments/booking/{bookingId}/refund` | `ROLE_DRIVER` | Processes refund via Razorpay, creates `Refund` record, marks payment `REFUNDED` and booking `CANCELLED` |
+
+### Charging Session Management
+| Method | Path | Auth | Description |
+| :--- | :--- | :--- | :--- |
+| `POST` | `/api/driver/sessions/start` | `ROLE_DRIVER` | Scans charger QR code to start charging (`ACTIVE`, `201`) |
+| `POST` | `/api/driver/sessions/{sessionId}/stop` | `ROLE_DRIVER` | Stops active session, calculates final energy & cost, marks session & booking `COMPLETED` |
+| `GET` | `/api/driver/sessions/{sessionId}/telemetry` | `ROLE_DRIVER` | Live dashboard numbers (power kW, energy kWh, elapsed time, live cost, battery %) |
+| `GET` | `/api/driver/sessions/active` | `ROLE_DRIVER` | Returns driver's currently ongoing active charging session |
+| `GET` | `/api/driver/sessions/{sessionId}` | `ROLE_DRIVER` | Fetches details and metrics of a specific session |
+| `GET` | `/api/driver/sessions` | `ROLE_DRIVER` | Lists charging history for authenticated driver (`startTime DESC`) |
+| `POST` | `/api/host/chargers/{chargerId}/sessions/{sessionId}/emergency-stop` | `ROLE_HOST` | Host invokes emergency cutoff on their charger (`EMERGENCY_STOPPED`) |
+| `GET` | `/api/host/chargers/{chargerId}/sessions` | `ROLE_HOST` | Host views all charging sessions that occurred on this charger |
+
+### Reviews & Ratings
+| Method | Path | Auth | Description |
+| :--- | :--- | :--- | :--- |
+| `POST` | `/api/driver/reviews` | `ROLE_DRIVER` | Submits a verified 1–5 star review for a completed session (`201`) |
+| `GET` | `/api/driver/reviews` | `ROLE_DRIVER` | Lists all reviews submitted by the logged-in driver |
+| `GET` | `/api/driver/reviews/session/{sessionId}` | `ROLE_DRIVER` | Fetches review for a specific session |
+| `GET` | `/api/chargers/{chargerId}/reviews` | Public | Publicly views all reviews and ratings for a charger |
+
 ---
 
 ## 5. How to Run & Test the Project Locally
@@ -197,12 +261,12 @@ docker compose ps
 ```powershell
 .\mvnw.cmd spring-boot:run
 ```
-Flyway automatically applies `V1`–`V6` on startup, and the API listens on `http://localhost:8083`.
+Flyway automatically applies `V1`–`V9` on startup, and the API listens on `http://localhost:8083`.
 
 ### 4. Run Automated Tests
 Unit and controller slice tests (do not require Docker):
 ```powershell
-.\mvnw.cmd test "-Dtest=BookingServiceTest,DriverBookingControllerTest,HostBookingControllerTest,DiscoveryServiceTest,DriverDiscoveryControllerTest,ChargerServiceTest,HostChargerControllerTest,AdminChargerControllerTest,UserServiceTest,UserControllerTest,AdminUserControllerTest,VehicleServiceTest,VehicleControllerTest"
+.\mvnw.cmd test "-Dtest=ReviewServiceTest,DriverReviewControllerTest,PublicReviewControllerTest,ChargingSessionServiceTest,DriverSessionControllerTest,HostSessionControllerTest,PaymentServiceTest,DriverPaymentControllerTest,BookingServiceTest,DriverBookingControllerTest,HostBookingControllerTest,DiscoveryServiceTest,DriverDiscoveryControllerTest,ChargerServiceTest,HostChargerControllerTest,AdminChargerControllerTest,UserServiceTest,UserControllerTest,AdminUserControllerTest,VehicleServiceTest,VehicleControllerTest"
 ```
 Full test suite (requires Docker Postgres running on port `5433` for `ChargeconnectApplicationTests`):
 ```powershell
@@ -274,5 +338,7 @@ Key details:
 
 ## 7. Next Modules (Planned)
 
-- **Payment Management** (Razorpay integration, checkout order creation, signature verification, refunds, host payouts)
-- **Charging Sessions** (QR check-in, host confirmation, real-time start/end tracking, energy consumption)
+- [x] **Payment Management** (Razorpay integration, checkout order creation, signature verification, refunds)
+- [x] **Charging Sessions** (QR check-in, host confirmation, real-time start/end tracking, energy consumption)
+- [x] **Reviews & Ratings** (Verified driver reviews after completed charging sessions, 1–5 star ratings, review text, automated charger average rating calculation)
+- [ ] **Host Payouts & Admin Analytics** (Platform revenue, host earnings calculation, commission deduction, settlement, platform audit metrics)
