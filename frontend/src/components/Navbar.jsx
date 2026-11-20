@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.jsx';
-import { Zap, LogOut, Compass, PlusCircle, Wallet, BatteryCharging, Shield, ArrowRight } from 'lucide-react';
+import { Zap, LogOut, Compass, PlusCircle, Wallet, BatteryCharging, Shield, ArrowRight, Car } from 'lucide-react';
 
 export const Navbar = () => {
   const { user, logout, hasRole } = useAuth();
@@ -51,8 +51,19 @@ export const Navbar = () => {
             {hasRole('DRIVER') && (
               <>
                 <Link
+                  to="/driver/vehicles"
+                  className={`px-3.5 py-2 rounded-full text-sm font-semibold flex items-center gap-1.5 transition-all ${
+                    isActive('/driver/vehicles')
+                      ? 'text-cyan-300 bg-white/10'
+                      : 'text-slate-300 hover:text-white hover:bg-white/[0.06]'
+                  }`}
+                >
+                  <Car className="w-4 h-4 text-cyan-400" />
+                  My EVs
+                </Link>
+                <Link
                   to="/driver/find"
-                  className={`px-4 py-2 rounded-full text-sm font-semibold flex items-center gap-1.5 transition-all ${
+                  className={`px-3.5 py-2 rounded-full text-sm font-semibold flex items-center gap-1.5 transition-all ${
                     isActive('/driver/find')
                       ? 'text-cyan-300 bg-white/10'
                       : 'text-slate-300 hover:text-white hover:bg-white/[0.06]'
@@ -63,7 +74,7 @@ export const Navbar = () => {
                 </Link>
                 <Link
                   to="/driver/bookings"
-                  className={`px-4 py-2 rounded-full text-sm font-semibold transition-all ${
+                  className={`px-3.5 py-2 rounded-full text-sm font-semibold transition-all ${
                     isActive('/driver/bookings')
                       ? 'text-cyan-300 bg-white/10'
                       : 'text-slate-300 hover:text-white hover:bg-white/[0.06]'
@@ -73,7 +84,7 @@ export const Navbar = () => {
                 </Link>
                 <Link
                   to="/driver/session"
-                  className={`px-4 py-2 rounded-full text-sm font-semibold flex items-center gap-1.5 transition-all ${
+                  className={`px-3.5 py-2 rounded-full text-sm font-semibold flex items-center gap-1.5 transition-all ${
                     isActive('/driver/session')
                       ? 'text-emerald-300 bg-white/10'
                       : 'text-slate-300 hover:text-white hover:bg-white/[0.06]'

@@ -6,6 +6,10 @@ import { ProtectedRoute } from './components/ProtectedRoute.jsx';
 import { Home } from './pages/Home.jsx';
 import { Login } from './pages/Login.jsx';
 import { Register } from './pages/Register.jsx';
+import { MyVehicles } from './pages/driver/MyVehicles.jsx';
+import { FindChargers } from './pages/driver/FindChargers.jsx';
+import { MyBookings } from './pages/driver/MyBookings.jsx';
+import { ActiveSession } from './pages/driver/ActiveSession.jsx';
 
 export default function App() {
   return (
@@ -22,13 +26,18 @@ export default function App() {
 
               {/* Driver Routes (Protected) */}
               <Route
+                path="/driver/vehicles"
+                element={
+                  <ProtectedRoute allowedRoles={['DRIVER']}>
+                    <MyVehicles />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
                 path="/driver/find"
                 element={
                   <ProtectedRoute allowedRoles={['DRIVER']}>
-                    <div className="max-w-7xl mx-auto px-4 py-12 text-center">
-                      <h1 className="text-3xl font-extrabold text-white mb-2">Find Nearby Chargers</h1>
-                      <p className="text-slate-400">Discover compatible EV charging stations with live availability.</p>
-                    </div>
+                    <FindChargers />
                   </ProtectedRoute>
                 }
               />
@@ -36,10 +45,7 @@ export default function App() {
                 path="/driver/bookings"
                 element={
                   <ProtectedRoute allowedRoles={['DRIVER']}>
-                    <div className="max-w-7xl mx-auto px-4 py-12 text-center">
-                      <h1 className="text-3xl font-extrabold text-white mb-2">My Bookings</h1>
-                      <p className="text-slate-400">Track upcoming reservations and past charging history.</p>
-                    </div>
+                    <MyBookings />
                   </ProtectedRoute>
                 }
               />
@@ -47,10 +53,7 @@ export default function App() {
                 path="/driver/session"
                 element={
                   <ProtectedRoute allowedRoles={['DRIVER']}>
-                    <div className="max-w-7xl mx-auto px-4 py-12 text-center">
-                      <h1 className="text-3xl font-extrabold text-white mb-2">Live Charging Session</h1>
-                      <p className="text-slate-400">Real-time battery charging gauge and live rupee cost meter.</p>
-                    </div>
+                    <ActiveSession />
                   </ProtectedRoute>
                 }
               />
