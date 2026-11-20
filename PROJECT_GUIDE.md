@@ -74,6 +74,17 @@ ChargeConnect is a **Peer-to-Peer EV Charging Marketplace** built as a Spring Bo
   - `controller.PublicReviewController` — `/api/chargers/{chargerId}/reviews`
   - `service.ReviewService`
   - `dto` — `CreateReviewRequest`, `ReviewResponse`
+- **`payout`**
+  - `model` — `HostPayout`, `PayoutStatus` (`PENDING`, `PROCESSED`, `REJECTED`), `PayoutMethod` (`UPI`, `BANK_TRANSFER`)
+  - `repo.HostPayoutRepository`
+  - `controller.HostPayoutController` — `/api/host/payouts/earnings`, `/api/host/payouts/request`, `/api/host/payouts`
+  - `controller.AdminPayoutController` — `/api/admin/payouts`, `/api/admin/payouts/{id}/process`, `/api/admin/payouts/{id}/reject`
+  - `service.PayoutService`
+  - `dto` — `RequestPayoutRequest`, `ProcessPayoutRequest`, `RejectPayoutRequest`, `PayoutResponse`, `HostEarningsSummaryResponse`
+- **`analytics`**
+  - `controller.AdminAnalyticsController` — `/api/admin/analytics`
+  - `service.AdminAnalyticsService`
+  - `dto` — `AdminAnalyticsResponse`
 - **`config`**
   - `SecurityConfig` — stateless filter chain, RBAC route rules, JSON 401/403 handlers
   - `HealthController` — `/api/health` database connectivity check
@@ -122,6 +133,10 @@ Migrations live in `src/main/resources/db/migration`:
    - `reviews` (`id`, `session_id` FK -> `charging_sessions.id` UNIQUE, `booking_id` FK -> `bookings.id` UNIQUE, `charger_id` FK -> `chargers.id` ON DELETE CASCADE, `driver_id` FK -> `users.id` ON DELETE CASCADE, `rating` 1–5, `comment`, timestamps)
    - Constraints: `chk_review_rating` (1–5)
    - Indexes: `idx_reviews_charger_id`, `idx_reviews_driver_id`, `idx_reviews_created_at`
+10. **`V10__create_payout_tables.sql`**
+    - `host_payouts` (`id`, `payout_reference` VARCHAR(64) UNIQUE, `host_id` FK -> `users.id` ON DELETE CASCADE, `amount > 0`, `currency` DEFAULT `'INR'`, `payout_method`, `account_details`, `status` DEFAULT `'PENDING'`, `transaction_reference`, `processed_at`, `failure_reason`, timestamps)
+    - Constraints: `chk_host_payout_method` (`UPI`, `BANK_TRANSFER`), `chk_host_payout_status` (`PENDING`, `PROCESSED`, `REJECTED`)
+    - Indexes: `idx_host_payouts_host_id`, `idx_host_payouts_status`
 
 ---
 
@@ -232,6 +247,25 @@ Enforces 30-minute time-slot boundaries, host operating hours, connector compati
 | `GET` | `/api/driver/reviews/session/{sessionId}` | `ROLE_DRIVER` | Fetches review for a specific session |
 | `GET` | `/api/chargers/{chargerId}/reviews` | Public | Publicly views all reviews and ratings for a charger |
 
+### Host Payouts
+Enforces **Dynamic Ledger Accounting (Option A)**: gross earnings are dynamically aggregated from completed sessions, deducting 10% platform commission, already processed payouts, and pending withdrawal reservations.
+
+| Method | Path | Auth | Description |
+| :--- | :--- | :--- | :--- |
+| `GET` | `/api/host/payouts/earnings` | `ROLE_HOST` | Host views real-time earnings summary (gross, 10% platform fee, net, total withdrawn, pending, available balance) |
+| `POST` | `/api/host/payouts/request` | `ROLE_HOST` | Host requests withdrawal (`UPI` or `BANK_TRANSFER`, min ₹50, amount $\le$ available balance) (`201`) |
+| `GET` | `/api/host/payouts` | `ROLE_HOST` | Host views payout transaction history |
+| `GET` | `/api/admin/payouts` | `ROLE_ADMIN` | Admin views all payout requests (optional `?status=PENDING\|PROCESSED\|REJECTED`) |
+| `POST` | `/api/admin/payouts/{id}/process` | `ROLE_ADMIN` | Admin marks payout as processed with banking UTR transaction reference |
+| `POST` | `/api/admin/payouts/{id}/reject` | `ROLE_ADMIN` | Admin rejects payout with reason, freeing pending balance back to host |
+
+### Admin Analytics & Executive Dashboard
+Single high-performance metrics dashboard aggregating whole-platform KPIs:
+
+| Method | Path | Auth | Description |
+| :--- | :--- | :--- | :--- |
+| `GET` | `/api/admin/analytics` | `ROLE_ADMIN` | Executive dashboard returning total users, drivers, hosts, chargers, approved chargers, sessions, active/completed sessions, total energy delivered (kWh), total gross booking volume (₹), total platform commission earned (10%), disbursed host payouts, and pending payouts |
+
 ---
 
 ## 5. How to Run & Test the Project Locally
@@ -261,12 +295,12 @@ docker compose ps
 ```powershell
 .\mvnw.cmd spring-boot:run
 ```
-Flyway automatically applies `V1`–`V9` on startup, and the API listens on `http://localhost:8083`.
+Flyway automatically applies `V1`–`V10` on startup, and the API listens on `http://localhost:8083`.
 
 ### 4. Run Automated Tests
-Unit and controller slice tests (do not require Docker):
+Unit and controller slice tests across all 11 modules (do not require Docker; 109 tests):
 ```powershell
-.\mvnw.cmd test "-Dtest=ReviewServiceTest,DriverReviewControllerTest,PublicReviewControllerTest,ChargingSessionServiceTest,DriverSessionControllerTest,HostSessionControllerTest,PaymentServiceTest,DriverPaymentControllerTest,BookingServiceTest,DriverBookingControllerTest,HostBookingControllerTest,DiscoveryServiceTest,DriverDiscoveryControllerTest,ChargerServiceTest,HostChargerControllerTest,AdminChargerControllerTest,UserServiceTest,UserControllerTest,AdminUserControllerTest,VehicleServiceTest,VehicleControllerTest"
+.\mvnw.cmd test "-Dtest=!ChargeconnectApplicationTests"
 ```
 Full test suite (requires Docker Postgres running on port `5433` for `ChargeconnectApplicationTests`):
 ```powershell
@@ -336,9 +370,14 @@ Key details:
 
 ---
 
-## 7. Next Modules (Planned)
+## 7. Marketplace Modules Completed
 
+- [x] **Auth & User Management** (JWT authentication, role assignment, account status lifecycle)
+- [x] **Vehicle Management** (Driver EV registration, battery capacity, connector mapping)
+- [x] **Charger Management** (Host charger registration, operating hours, admin approval workflow)
+- [x] **Location & Discovery** (PostGIS spatial queries, nearby charger search, connector compatibility)
+- [x] **Booking Management** (Two-layer Redis hold lock & PostgreSQL overlap prevention, slot blocking)
 - [x] **Payment Management** (Razorpay integration, checkout order creation, signature verification, refunds)
-- [x] **Charging Sessions** (QR check-in, host confirmation, real-time start/end tracking, energy consumption)
-- [x] **Reviews & Ratings** (Verified driver reviews after completed charging sessions, 1–5 star ratings, review text, automated charger average rating calculation)
-- [ ] **Host Payouts & Admin Analytics** (Platform revenue, host earnings calculation, commission deduction, settlement, platform audit metrics)
+- [x] **Charging Sessions** (QR check-in, real-time start/stop, live telemetry, energy consumption calculation)
+- [x] **Reviews & Ratings** (Verified driver reviews after completed charging sessions, 1–5 star ratings, dynamic average calculation)
+- [x] **Host Payouts & Admin Analytics** (Dynamic ledger accounting, 10% platform fee, withdrawal requests, admin settlement, executive platform KPIs)

@@ -12,5 +12,8 @@ public interface UserRepository extends JpaRepository<User, Long> {
     boolean existsByEmail(String email);
 
     List<User> findAllByOrderByCreatedAtDesc();
+
+    @org.springframework.data.jpa.repository.Query("SELECT COUNT(DISTINCT u) FROM User u JOIN u.roles r WHERE r = :role")
+    long countByRole(@org.springframework.data.repository.query.Param("role") com.example.chargeconnect.user.model.Role role);
 }
 
