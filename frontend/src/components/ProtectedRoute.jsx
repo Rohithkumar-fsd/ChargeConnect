@@ -23,7 +23,7 @@ export const ProtectedRoute = ({ allowedRoles, children }) => {
     const hasRequiredRole = allowedRoles.some((role) => hasRole(role));
     if (!hasRequiredRole) {
       return (
-        <div className="max-w-md mx-auto mt-20 p-8 bg-slate-900/80 backdrop-blur-xl border border-rose-500/30 rounded-3xl text-center shadow-2xl">
+        <div className="max-w-md mx-auto mt-20 p-8 bg-[#091a33]/90 backdrop-blur-2xl border border-rose-500/30 rounded-3xl text-center shadow-2xl">
           <div className="w-14 h-14 bg-rose-500/10 text-rose-400 rounded-2xl flex items-center justify-center mx-auto mb-4 text-2xl">
             🔒
           </div>
@@ -32,12 +32,30 @@ export const ProtectedRoute = ({ allowedRoles, children }) => {
             Your account ({user.roles.map((r) => r.replace('ROLE_', '')).join(', ')}) does not have permission to view
             this dashboard.
           </p>
-          <a
-            href="/"
-            className="inline-block px-5 py-2.5 bg-slate-800 hover:bg-slate-700 text-white text-sm font-semibold rounded-xl transition-all shadow-md"
-          >
-            Back to Home
-          </a>
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
+            {hasRole('HOST') && (
+              <a
+                href="/host/dashboard"
+                className="px-5 py-2.5 bg-gradient-to-r from-[#635bff] to-[#a855f7] text-white text-xs font-semibold rounded-xl transition-all shadow-md"
+              >
+                Go to Host Hub →
+              </a>
+            )}
+            {hasRole('ADMIN') && (
+              <a
+                href="/admin"
+                className="px-5 py-2.5 bg-gradient-to-r from-amber-500 to-orange-500 text-slate-950 text-xs font-bold rounded-xl transition-all shadow-md"
+              >
+                Go to Admin CEO →
+              </a>
+            )}
+            <a
+              href="/"
+              className="px-5 py-2.5 bg-white/[0.06] hover:bg-white/[0.1] text-white text-xs font-semibold rounded-xl transition-all"
+            >
+              Back to Home
+            </a>
+          </div>
         </div>
       );
     }

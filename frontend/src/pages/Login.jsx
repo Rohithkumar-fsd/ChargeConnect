@@ -22,17 +22,33 @@ export const Login = () => {
 
     try {
       const user = await login(email, password);
-      if (from === '/' || from === '/login') {
-        if (user.roles.includes('ROLE_ADMIN')) {
-          navigate('/admin');
-        } else if (user.roles.includes('ROLE_HOST')) {
-          navigate('/host/dashboard');
-        } else {
-          navigate('/driver/find');
-        }
-      } else {
-        navigate(from, { replace: true });
+
+      // Determine smart destination based on user's granted roles
+      let targetPath = '/driver/find';
+      if (user.roles.includes('ROLE_ADMIN')) {
+        targetPath = '/admin';
+      } else if (user.roles.includes('ROLE_HOST') && !user.roles.includes('ROLE_DRIVER')) {
+        targetPath = '/host/dashboard';
       }
+
+      // If user came from a specific page, check if their role actually permits it
+      if (from && from !== '/' && from !== '/login') {
+        const isDriverRoute = from.startsWith('/driver');
+        const isHostRoute = from.startsWith('/host');
+        const isAdminRoute = from.startsWith('/admin');
+
+        const canAccessFrom =
+          (isDriverRoute && user.roles.includes('ROLE_DRIVER')) ||
+          (isHostRoute && user.roles.includes('ROLE_HOST')) ||
+          (isAdminRoute && user.roles.includes('ROLE_ADMIN'));
+
+        if (canAccessFrom) {
+          navigate(from, { replace: true });
+          return;
+        }
+      }
+
+      navigate(targetPath, { replace: true });
     } catch (err) {
       setError(err.message || 'Invalid email or password');
     } finally {
