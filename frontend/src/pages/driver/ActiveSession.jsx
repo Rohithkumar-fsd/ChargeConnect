@@ -36,10 +36,11 @@ export const ActiveSession = () => {
   const [success, setSuccess] = useState('');
 
   // Start Session Form (When no active session)
-  const [confirmedBookings, setConfirmedBookings] = useState([]);
+  const [allBookings, setAllBookings] = useState([]);
   const [selectedBookingId, setSelectedBookingId] = useState(() => searchParams.get('bookingId') || '');
   const [qrCodeInput, setQrCodeInput] = useState('CHG-QR-2');
   const [startingSession, setStartingSession] = useState(false);
+  const [payingBooking, setPayingBooking] = useState(false);
 
   // Stop Session
   const [stoppingSession, setStoppingSession] = useState(false);
@@ -60,7 +61,7 @@ export const ActiveSession = () => {
       setLoading(true);
       setError('');
 
-      // Check active session
+      // Check active session (404 is normal when no session is active)
       try {
         const session = await api.get('/api/driver/sessions/active');
         if (session && session.id && session.status === 'ACTIVE') {
@@ -72,18 +73,25 @@ export const ActiveSession = () => {
         setActiveSession(null);
       }
 
-      // Check confirmed bookings to populate dropdown
+      // Load all driver bookings
       try {
         const bookings = await api.get('/api/driver/bookings');
-        const confirmed = (Array.isArray(bookings) ? bookings : []).filter(
-          (b) => b.status === 'CONFIRMED'
-        );
-        setConfirmedBookings(confirmed);
-        if (!selectedBookingId && confirmed.length > 0) {
-          setSelectedBookingId(confirmed[0].id.toString());
+        const list = Array.isArray(bookings) ? bookings : [];
+        setAllBookings(list);
+
+        const urlBookingId = searchParams.get('bookingId');
+        if (urlBookingId && list.some((b) => b.id.toString() === urlBookingId)) {
+          setSelectedBookingId(urlBookingId);
+        } else {
+          const firstConfirmed = list.find((b) => b.status === 'CONFIRMED');
+          if (firstConfirmed) {
+            setSelectedBookingId(firstConfirmed.id.toString());
+          } else if (list.length > 0) {
+            setSelectedBookingId(list[0].id.toString());
+          }
         }
       } catch {
-        setConfirmedBookings([]);
+        setAllBookings([]);
       }
     } catch (err) {
       setError(err.message || 'Failed to initialize session status.');
@@ -95,6 +103,33 @@ export const ActiveSession = () => {
   useEffect(() => {
     loadInitialData();
   }, []);
+
+  // Quick 1-click payment for PENDING booking
+  const handlePayPendingBooking = async (bookingId) => {
+    try {
+      setPayingBooking(true);
+      setError('');
+      // Step 1: create order
+      const order = await api.post('/api/driver/payments/create-order', {
+        bookingId: parseInt(bookingId),
+      });
+      // Step 2: verify payment
+      await api.post('/api/driver/payments/verify', {
+        bookingId: parseInt(bookingId),
+        razorpayOrderId: order.razorpayOrderId,
+        razorpayPaymentId: `pay_mock_${Date.now()}`,
+        razorpaySignature: 'mock_signature',
+      });
+      setSuccess('Payment verified! Booking is now CONFIRMED and ready to charge.');
+      await loadInitialData();
+    } catch (err) {
+      setError(err.message || 'Failed to complete payment for booking.');
+    } finally {
+      setPayingBooking(false);
+    }
+  };
+
+  const selectedBooking = allBookings.find((b) => b.id.toString() === selectedBookingId?.toString());
 
   // 2. Telemetry Polling (every 3 seconds when session is active)
   useEffect(() => {
@@ -455,29 +490,67 @@ export const ActiveSession = () => {
               </div>
 
               <form onSubmit={handleStartSession} className="space-y-4">
-                {/* Confirmed Booking Link (Optional/Recommended) */}
+                {/* Select Booking */}
                 <div>
                   <label className="block text-xs font-medium text-slate-300 mb-1 flex items-center justify-between">
-                    <span>Link Confirmed Booking (Optional):</span>
+                    <span>Select Booking *</span>
                     <Link to="/driver/bookings" className="text-cyan-400 text-[11px] hover:underline">
-                      View Bookings
+                      View All Bookings
                     </Link>
                   </label>
                   <select
                     value={selectedBookingId}
-                    onChange={(e) => setSelectedBookingId(e.target.value)}
+                    onChange={(e) => {
+                      const id = e.target.value;
+                      setSelectedBookingId(id);
+                      const b = allBookings.find((item) => item.id.toString() === id);
+                      if (b?.chargerId) {
+                        setQrCodeInput(`CHG-QR-${b.chargerId}`);
+                      }
+                    }}
                     className="w-full px-3.5 py-2.5 rounded-xl bg-white/[0.04] border border-white/10 text-white text-xs focus:outline-none focus:border-cyan-400"
                   >
                     <option value="" className="bg-slate-900 text-slate-400">
-                      -- Walk-in / Direct QR Activation (No prior booking) --
+                      -- Choose a reservation --
                     </option>
-                    {confirmedBookings.map((b) => (
+                    {allBookings.map((b) => (
                       <option key={b.id} value={b.id} className="bg-slate-900 text-white">
-                        {b.bookingReference} - {b.chargerTitle} (₹{b.totalPrice})
+                        [{b.status}] {b.bookingReference || `BK-${b.id}`} - {b.chargerTitle} (₹{b.totalPrice})
                       </option>
                     ))}
                   </select>
                 </div>
+
+                {/* If selected booking is PENDING, show Pay & Confirm button */}
+                {selectedBooking && selectedBooking.status === 'PENDING' && (
+                  <div className="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-amber-200 text-xs space-y-2">
+                    <div className="flex items-center gap-2 font-semibold text-white">
+                      <AlertCircle className="w-4 h-4 text-amber-400 shrink-0" />
+                      Payment Required Before Charging
+                    </div>
+                    <p className="text-slate-300 text-[11px]">
+                      Booking <strong className="text-white font-mono">{selectedBooking.bookingReference}</strong> is currently on a 10-minute hold. Complete checkout to unlock physical power.
+                    </p>
+                    <button
+                      type="button"
+                      disabled={payingBooking}
+                      onClick={() => handlePayPendingBooking(selectedBooking.id)}
+                      className="px-4 py-2 rounded-xl bg-gradient-to-r from-emerald-500 to-cyan-500 text-white font-bold text-xs shadow-md shadow-emerald-500/20 hover:scale-[1.02] transition-all flex items-center gap-1.5"
+                    >
+                      {payingBooking ? (
+                        <>
+                          <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                          Authorizing Payment...
+                        </>
+                      ) : (
+                        <>
+                          <Sparkles className="w-3.5 h-3.5" />
+                          Complete Payment (₹{selectedBooking.totalPrice}) & Unlock Charger
+                        </>
+                      )}
+                    </button>
+                  </div>
+                )}
 
                 {/* QR Code Input */}
                 <div>
@@ -501,7 +574,7 @@ export const ActiveSession = () => {
                 <div className="pt-2">
                   <button
                     type="submit"
-                    disabled={startingSession}
+                    disabled={startingSession || (selectedBooking && selectedBooking.status === 'PENDING')}
                     className="w-full py-3.5 px-6 rounded-2xl bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 text-white font-bold text-sm shadow-xl shadow-emerald-500/25 hover:scale-[1.01] active:scale-[0.99] disabled:opacity-50 transition-all flex items-center justify-center gap-2"
                   >
                     {startingSession ? (
