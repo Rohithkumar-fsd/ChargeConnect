@@ -144,7 +144,7 @@ export const Login = () => {
               </button>
               <button
                 type="button"
-                onClick={() => fillCredentials('admin@chargeconnect.com', 'AdminPass123!')}
+                onClick={() => fillCredentials('admin@chargeconnect.com', 'Password123!')}
                 className="px-2.5 py-2 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] text-[11px] font-bold text-amber-300 border border-amber-500/30 transition-all text-center"
               >
                 👑 Admin
