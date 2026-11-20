@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.jsx';
-import { Zap, LogOut, Compass, PlusCircle, Wallet, BatteryCharging, Shield } from 'lucide-react';
+import { Zap, LogOut, Compass, PlusCircle, Wallet, BatteryCharging, Shield, ArrowRight } from 'lucide-react';
 
 export const Navbar = () => {
   const { user, logout, hasRole } = useAuth();
@@ -16,20 +16,20 @@ export const Navbar = () => {
   const isActive = (path) => location.pathname === path;
 
   return (
-    <nav className="sticky top-0 z-50 bg-slate-950/80 backdrop-blur-xl border-b border-slate-800/80">
+    <nav className="sticky top-0 z-50 bg-[#061224]/85 backdrop-blur-2xl border-b border-white/[0.08] transition-all">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between h-16 items-center">
+        <div className="flex justify-between h-18 items-center">
           {/* Logo & Brand */}
-          <Link to="/" className="flex items-center gap-2.5 group">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-emerald-400 via-teal-500 to-cyan-400 flex items-center justify-center shadow-lg shadow-emerald-500/20 group-hover:scale-105 group-hover:shadow-emerald-500/30 transition-all">
-              <Zap className="w-5 h-5 text-slate-950 fill-current" />
+          <Link to="/" className="flex items-center gap-3 group">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-[#635bff] via-[#7928ca] to-[#00d4ff] flex items-center justify-center shadow-lg shadow-[#635bff]/30 group-hover:scale-105 group-hover:shadow-[#635bff]/50 transition-all">
+              <Zap className="w-5 h-5 text-white fill-current" />
             </div>
             <div className="flex flex-col">
-              <span className="font-extrabold text-lg tracking-tight bg-gradient-to-r from-white via-slate-100 to-slate-400 bg-clip-text text-transparent">
+              <span className="font-extrabold text-xl tracking-tight text-white group-hover:text-cyan-300 transition-colors">
                 ChargeConnect
               </span>
-              <span className="text-[10px] uppercase tracking-widest text-emerald-400 font-semibold -mt-1">
-                P2P EV Marketplace
+              <span className="text-[10px] uppercase tracking-widest text-[#00d4ff] font-bold -mt-1">
+                P2P EV Network
               </span>
             </div>
           </Link>
@@ -38,10 +38,10 @@ export const Navbar = () => {
           <div className="hidden md:flex items-center gap-1.5">
             <Link
               to="/"
-              className={`px-3.5 py-2 rounded-xl text-sm font-medium transition-all ${
+              className={`px-4 py-2 rounded-full text-sm font-semibold transition-all ${
                 isActive('/')
-                  ? 'text-emerald-400 bg-slate-800/80 shadow-inner'
-                  : 'text-slate-300 hover:text-white hover:bg-slate-800/40'
+                  ? 'text-white bg-white/10 shadow-inner'
+                  : 'text-slate-300 hover:text-white hover:bg-white/[0.06]'
               }`}
             >
               Home
@@ -52,31 +52,31 @@ export const Navbar = () => {
               <>
                 <Link
                   to="/driver/find"
-                  className={`px-3.5 py-2 rounded-xl text-sm font-medium flex items-center gap-1.5 transition-all ${
+                  className={`px-4 py-2 rounded-full text-sm font-semibold flex items-center gap-1.5 transition-all ${
                     isActive('/driver/find')
-                      ? 'text-emerald-400 bg-slate-800/80'
-                      : 'text-slate-300 hover:text-white hover:bg-slate-800/40'
+                      ? 'text-cyan-300 bg-white/10'
+                      : 'text-slate-300 hover:text-white hover:bg-white/[0.06]'
                   }`}
                 >
-                  <Compass className="w-4 h-4 text-emerald-400" />
+                  <Compass className="w-4 h-4 text-[#00d4ff]" />
                   Find Chargers
                 </Link>
                 <Link
                   to="/driver/bookings"
-                  className={`px-3.5 py-2 rounded-xl text-sm font-medium transition-all ${
+                  className={`px-4 py-2 rounded-full text-sm font-semibold transition-all ${
                     isActive('/driver/bookings')
-                      ? 'text-emerald-400 bg-slate-800/80'
-                      : 'text-slate-300 hover:text-white hover:bg-slate-800/40'
+                      ? 'text-cyan-300 bg-white/10'
+                      : 'text-slate-300 hover:text-white hover:bg-white/[0.06]'
                   }`}
                 >
                   My Bookings
                 </Link>
                 <Link
                   to="/driver/session"
-                  className={`px-3.5 py-2 rounded-xl text-sm font-medium flex items-center gap-1.5 transition-all ${
+                  className={`px-4 py-2 rounded-full text-sm font-semibold flex items-center gap-1.5 transition-all ${
                     isActive('/driver/session')
-                      ? 'text-emerald-400 bg-slate-800/80'
-                      : 'text-slate-300 hover:text-white hover:bg-slate-800/40'
+                      ? 'text-emerald-300 bg-white/10'
+                      : 'text-slate-300 hover:text-white hover:bg-white/[0.06]'
                   }`}
                 >
                   <BatteryCharging className="w-4 h-4 text-emerald-400 animate-pulse" />
@@ -90,24 +90,24 @@ export const Navbar = () => {
               <>
                 <Link
                   to="/host/dashboard"
-                  className={`px-3.5 py-2 rounded-xl text-sm font-medium flex items-center gap-1.5 transition-all ${
+                  className={`px-4 py-2 rounded-full text-sm font-semibold flex items-center gap-1.5 transition-all ${
                     isActive('/host/dashboard')
-                      ? 'text-purple-400 bg-slate-800/80'
-                      : 'text-slate-300 hover:text-white hover:bg-slate-800/40'
+                      ? 'text-[#a855f7] bg-white/10'
+                      : 'text-slate-300 hover:text-white hover:bg-white/[0.06]'
                   }`}
                 >
-                  <PlusCircle className="w-4 h-4 text-purple-400" />
+                  <PlusCircle className="w-4 h-4 text-[#a855f7]" />
                   Host Hub
                 </Link>
                 <Link
                   to="/host/earnings"
-                  className={`px-3.5 py-2 rounded-xl text-sm font-medium flex items-center gap-1.5 transition-all ${
+                  className={`px-4 py-2 rounded-full text-sm font-semibold flex items-center gap-1.5 transition-all ${
                     isActive('/host/earnings')
-                      ? 'text-purple-400 bg-slate-800/80'
-                      : 'text-slate-300 hover:text-white hover:bg-slate-800/40'
+                      ? 'text-[#a855f7] bg-white/10'
+                      : 'text-slate-300 hover:text-white hover:bg-white/[0.06]'
                   }`}
                 >
-                  <Wallet className="w-4 h-4 text-purple-400" />
+                  <Wallet className="w-4 h-4 text-[#a855f7]" />
                   Earnings & Payouts
                 </Link>
               </>
@@ -117,14 +117,14 @@ export const Navbar = () => {
             {hasRole('ADMIN') && (
               <Link
                 to="/admin"
-                className={`px-3.5 py-2 rounded-xl text-sm font-medium flex items-center gap-1.5 transition-all ${
+                className={`px-4 py-2 rounded-full text-sm font-semibold flex items-center gap-1.5 transition-all ${
                   isActive('/admin')
-                    ? 'text-amber-400 bg-slate-800/80'
-                    : 'text-slate-300 hover:text-white hover:bg-slate-800/40'
+                    ? 'text-amber-300 bg-white/10'
+                    : 'text-slate-300 hover:text-white hover:bg-white/[0.06]'
                 }`}
               >
                 <Shield className="w-4 h-4 text-amber-400" />
-                Admin Dashboard
+                Admin CEO
               </Link>
             )}
           </div>
@@ -134,20 +134,20 @@ export const Navbar = () => {
             {user ? (
               <div className="flex items-center gap-3">
                 <div className="hidden sm:flex flex-col text-right">
-                  <span className="text-sm font-semibold text-white">{user.fullName}</span>
+                  <span className="text-sm font-bold text-white">{user.fullName}</span>
                   <div className="flex items-center gap-1 justify-end mt-0.5">
                     {user.roles.map((r) => {
                       const roleName = r.replace('ROLE_', '');
                       const badgeStyle =
                         roleName === 'ADMIN'
-                          ? 'bg-amber-500/10 text-amber-300 border-amber-500/30'
+                          ? 'bg-amber-500/20 text-amber-300 border-amber-500/40'
                           : roleName === 'HOST'
-                          ? 'bg-purple-500/10 text-purple-300 border-purple-500/30'
-                          : 'bg-emerald-500/10 text-emerald-300 border-emerald-500/30';
+                          ? 'bg-purple-500/20 text-purple-300 border-purple-500/40'
+                          : 'bg-[#00d4ff]/20 text-cyan-300 border-[#00d4ff]/40';
                       return (
                         <span
                           key={r}
-                          className={`text-[10px] font-bold tracking-wide uppercase px-2 py-0.5 rounded-full border ${badgeStyle}`}
+                          className={`text-[10px] font-extrabold tracking-wider uppercase px-2.5 py-0.5 rounded-full border ${badgeStyle}`}
                         >
                           {roleName}
                         </span>
@@ -158,25 +158,26 @@ export const Navbar = () => {
 
                 <button
                   onClick={handleLogout}
-                  className="p-2 text-slate-400 hover:text-rose-400 hover:bg-slate-800/60 rounded-xl transition-all"
+                  className="p-2.5 text-slate-400 hover:text-rose-400 hover:bg-white/[0.08] rounded-full transition-all"
                   title="Logout"
                 >
                   <LogOut className="w-5 h-5" />
                 </button>
               </div>
             ) : (
-              <div className="flex items-center gap-2.5">
+              <div className="flex items-center gap-3">
                 <Link
                   to="/login"
-                  className="px-4 py-2 text-sm font-medium text-slate-300 hover:text-white hover:bg-slate-800/60 rounded-xl transition-all"
+                  className="px-4 py-2 text-sm font-semibold text-slate-200 hover:text-white transition-colors"
                 >
                   Sign in
                 </Link>
                 <Link
                   to="/register"
-                  className="px-4 py-2 text-sm font-semibold text-slate-950 bg-gradient-to-r from-emerald-400 to-teal-400 hover:from-emerald-300 hover:to-teal-300 rounded-xl shadow-lg shadow-emerald-500/20 hover:shadow-emerald-500/30 hover:scale-[1.02] active:scale-[0.98] transition-all"
+                  className="px-5 py-2.5 text-sm font-bold text-white bg-[#635bff] hover:bg-[#5340ff] rounded-full shadow-lg shadow-[#635bff]/40 hover:shadow-[#635bff]/60 hover:scale-[1.03] active:scale-[0.98] transition-all flex items-center gap-1.5"
                 >
-                  Get Started
+                  <span>Get Started</span>
+                  <ArrowRight className="w-4 h-4" />
                 </Link>
               </div>
             )}
