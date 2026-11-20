@@ -52,6 +52,7 @@ public class SecurityConfig {
         // Allow local frontend development servers
         config.setAllowedOrigins(List.of(
                 "http://localhost:5173",
+                "http://localhost:5174",
                 "http://localhost:3000",
                 "http://localhost:3001"
         ));
