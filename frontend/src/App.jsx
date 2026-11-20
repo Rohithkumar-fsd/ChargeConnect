@@ -10,6 +10,9 @@ import { MyVehicles } from './pages/driver/MyVehicles.jsx';
 import { FindChargers } from './pages/driver/FindChargers.jsx';
 import { MyBookings } from './pages/driver/MyBookings.jsx';
 import { ActiveSession } from './pages/driver/ActiveSession.jsx';
+import { HostDashboard } from './pages/host/HostDashboard.jsx';
+import { HostEarnings } from './pages/host/HostEarnings.jsx';
+import { AdminDashboard } from './pages/admin/AdminDashboard.jsx';
 
 export default function App() {
   return (
@@ -63,10 +66,7 @@ export default function App() {
                 path="/host/dashboard"
                 element={
                   <ProtectedRoute allowedRoles={['HOST']}>
-                    <div className="max-w-7xl mx-auto px-4 py-12 text-center">
-                      <h1 className="text-3xl font-extrabold text-white mb-2">Host Dashboard</h1>
-                      <p className="text-slate-400">Manage your private EV chargers and schedule availability.</p>
-                    </div>
+                    <HostDashboard />
                   </ProtectedRoute>
                 }
               />
@@ -74,10 +74,7 @@ export default function App() {
                 path="/host/earnings"
                 element={
                   <ProtectedRoute allowedRoles={['HOST']}>
-                    <div className="max-w-7xl mx-auto px-4 py-12 text-center">
-                      <h1 className="text-3xl font-extrabold text-white mb-2">Earnings & Payouts</h1>
-                      <p className="text-slate-400">Dynamic ledger accounting and instant UPI withdrawals.</p>
-                    </div>
+                    <HostEarnings />
                   </ProtectedRoute>
                 }
               />
@@ -87,10 +84,7 @@ export default function App() {
                 path="/admin"
                 element={
                   <ProtectedRoute allowedRoles={['ADMIN']}>
-                    <div className="max-w-7xl mx-auto px-4 py-12 text-center">
-                      <h1 className="text-3xl font-extrabold text-white mb-2">Admin CEO Dashboard</h1>
-                      <p className="text-slate-400">Review charger hardware, verify stations, and approve payouts.</p>
-                    </div>
+                    <AdminDashboard />
                   </ProtectedRoute>
                 }
               />
