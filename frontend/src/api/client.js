@@ -46,15 +46,15 @@ async function request(endpoint, options = {}) {
   if (!response.ok) {
     let errorMessage = 'An unexpected error occurred';
     if (data && typeof data === 'object') {
-      if (data.message) {
-        errorMessage = data.message;
-      } else if (data.error) {
-        errorMessage = data.error;
-      } else if (data.fieldErrors) {
+      if (data.fieldErrors && Object.keys(data.fieldErrors).length > 0) {
         const fields = Object.entries(data.fieldErrors)
           .map(([k, v]) => `${k}: ${v}`)
           .join(', ');
         errorMessage = `Validation failed: ${fields}`;
+      } else if (data.message) {
+        errorMessage = data.message;
+      } else if (data.error) {
+        errorMessage = data.error;
       }
     } else if (typeof data === 'string' && data.length > 0) {
       errorMessage = data;

@@ -275,8 +275,8 @@ export const BookSlotModal = ({ charger, vehicle, isOpen, onClose, onBookingSucc
             <div className="mb-6">
               <label className="block text-xs uppercase tracking-wider text-slate-400 font-semibold mb-2 flex items-center justify-between">
                 <span>Pick Start Time:</span>
-                <span className="text-[11px] lowercase text-slate-500 font-normal">
-                  (Green = available, Dim = booked)
+                <span className="text-[11px] text-slate-500 font-normal">
+                  (Green = available, Dim/Strikethrough = past or booked)
                 </span>
               </label>
 
@@ -292,7 +292,8 @@ export const BookSlotModal = ({ charger, vehicle, isOpen, onClose, onBookingSucc
               ) : (
                 <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-2 max-h-48 overflow-y-auto pr-1">
                   {availableSlots.map((slot, idx) => {
-                    const isAvailable = slot.status === 'AVAILABLE';
+                    const isPast = new Date(slot.startTime).getTime() <= Date.now();
+                    const isAvailable = slot.status === 'AVAILABLE' && !isPast;
                     const isSelected = selectedSlotIndex === idx;
                     const timeLabel = new Date(slot.startTime).toLocaleTimeString([], {
                       hour: '2-digit',
@@ -306,6 +307,7 @@ export const BookSlotModal = ({ charger, vehicle, isOpen, onClose, onBookingSucc
                         type="button"
                         disabled={!isAvailable}
                         onClick={() => setSelectedSlotIndex(idx)}
+                        title={isPast ? 'This time slot has already passed' : isAvailable ? 'Available' : 'Booked'}
                         className={`p-2 rounded-xl text-center text-xs font-mono transition-all border ${
                           isSelected
                             ? 'bg-gradient-to-r from-[#635bff] to-[#00d4ff] text-white border-transparent font-bold shadow-lg shadow-[#635bff]/30'
